@@ -1,24 +1,26 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
-import api, { setUnauthorizedHandler } from '../api/client';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile,
+} from 'firebase/auth';
+import { auth } from '../firebase';
 
 const AuthContext = createContext(null);
 const ADMIN_EMAILS = ['foreverram03@gmail.com'];
 
-const resolveRole = (user) => {
-  if (!user) {
-    return null;
-  }
-
-  const email = String(user.email || '').toLowerCase();
-  const role = ADMIN_EMAILS.includes(email) ? 'admin' : (user.role || 'editor');
-  return { ...user, role };
-};
-
-const persistSession = async ({ accessToken, refreshToken, user }) => {
-  await SecureStore.setItemAsync('accessToken', accessToken);
-  await SecureStore.setItemAsync('refreshToken', refreshToken);
-  await SecureStore.setItemAsync('user', JSON.stringify(user));
+const resolveRole = (firebaseUser) => {
+  if (!firebaseUser) return null;
+  const email = String(firebaseUser.email || '').toLowerCase();
+  return {
+    uid: firebaseUser.uid,
+    email: firebaseUser.email,
+    name: firebaseUser.displayName || firebaseUser.email,
+    role: ADMIN_EMAILS.includes(email) ? 'admin' : 'editor',
+  };
 };
 
 export function AuthProvider({ children }) {
@@ -26,68 +28,35 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const bootstrap = async () => {
-      try {
-        const raw = await SecureStore.getItemAsync('user');
-        if (raw) {
-          setUser(resolveRole(JSON.parse(raw)));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    bootstrap();
-  }, []);
-
-  const logout = async () => {
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('refreshToken');
-    await SecureStore.deleteItemAsync('user');
-    setUser(null);
-  };
-
-  useEffect(() => {
-    setUnauthorizedHandler(async () => {
-      await logout();
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser ? resolveRole(firebaseUser) : null);
+      setLoading(false);
     });
-
-    return () => {
-      setUnauthorizedHandler(null);
-    };
+    return unsub;
   }, []);
 
   const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    const nextUser = resolveRole(data.user);
-    await persistSession({
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-      user: nextUser,
-    });
-    setUser(nextUser);
-    return nextUser;
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    return resolveRole(cred.user);
   };
 
   const register = async (name, email, password) => {
-    const { data } = await api.post('/auth/register', { name, email, password });
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
+    return resolveRole({ ...cred.user, displayName: name });
+  };
 
-    if (data?.accessToken && data?.refreshToken && data?.user) {
-      const nextUser = resolveRole(data.user);
-      await persistSession({
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-        user: nextUser,
-      });
-      setUser(nextUser);
-      return nextUser;
-    }
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+  };
 
-    return login(email, password);
+  const forgotPassword = async (email) => {
+    await sendPasswordResetEmail(auth, email);
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout }),
+    () => ({ user, loading, login, register, logout, forgotPassword }),
     [user, loading]
   );
 

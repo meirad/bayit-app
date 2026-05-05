@@ -9,11 +9,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import api from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 import colors from '../theme/colors';
 import ErrorBanner from '../components/ErrorBanner';
 
 export default function ForgotPasswordScreen({ navigation }) {
+  const { forgotPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -23,10 +24,10 @@ export default function ForgotPasswordScreen({ navigation }) {
     setError('');
     setSubmitting(true);
     try {
-      await api.post('/auth/forgot-password', { email: email.trim() });
+      await forgotPassword(email.trim());
       setSubmitted(true);
     } catch (err) {
-      setError(err.response?.data?.error || 'Could not send reset link.');
+      setError('Could not send reset link.');
     } finally {
       setSubmitting(false);
     }

@@ -9,7 +9,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import api from '../api/client';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import colors from '../theme/colors';
 import ErrorBanner from '../components/ErrorBanner';
@@ -39,12 +40,17 @@ export default function EditPropertyScreen({ route, navigation }) {
     const loadProperty = async () => {
       setLoading(true);
       try {
-        const { data } = await api.get(`/codes/${id}`);
-        setName(data.name || '');
-        setCodes(Array.isArray(data.codes) && data.codes.length > 0 ? data.codes : [{ label: '', value: '' }]);
-        setNotes(data.notes || '');
+        const snap = await getDoc(doc(db, 'properties', id));
+        if (snap.exists()) {
+          const data = snap.data();
+          setName(data.name || '');
+          setCodes(Array.isArray(data.codes) && data.codes.length > 0 ? data.codes : [{ label: '', value: '' }]);
+          setNotes(data.notes || '');
+        } else {
+          setError('Property not found.');
+        }
       } catch (err) {
-        setError(err.response?.data?.error || 'Failed to load property.');
+        setError('Failed to load property.');
       } finally {
         setLoading(false);
       }
@@ -78,19 +84,14 @@ export default function EditPropertyScreen({ route, navigation }) {
 
     setSaving(true);
     try {
-      await api.put(`/codes/${id}`, {
+      await updateDoc(doc(db, 'properties', id), {
         name: name.trim(),
         codes: normalizedCodes,
         notes: notes.trim(),
       });
       navigation.replace('PropertyDetail', { id });
     } catch (err) {
-      const status = err.response?.status;
-      if (status === 403) {
-        setError("You don't have permission to do this.");
-      } else {
-        setError(err.response?.data?.error || 'Failed to save changes.');
-      }
+      setError('Failed to save changes.');
     } finally {
       setSaving(false);
     }

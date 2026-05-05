@@ -9,11 +9,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import api from '../api/client';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 import colors from '../theme/colors';
 import ErrorBanner from '../components/ErrorBanner';
 
 export default function AddPropertyScreen({ navigation }) {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [codes, setCodes] = useState([{ label: '', value: '' }]);
   const [notes, setNotes] = useState('');
@@ -49,14 +52,16 @@ export default function AddPropertyScreen({ navigation }) {
 
     setSaving(true);
     try {
-      await api.post('/codes', {
+      await addDoc(collection(db, 'properties'), {
         name: name.trim(),
         codes: normalizedCodes,
         notes: notes.trim(),
+        createdBy: user?.uid,
+        createdAt: serverTimestamp(),
       });
       navigation.goBack();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save property.');
+      setError('Failed to save property.');
     } finally {
       setSaving(false);
     }

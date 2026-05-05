@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, ToastAndroid, View, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../api/client';
+import { doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import colors from '../theme/colors';
 import CodeRow from '../components/CodeRow';
@@ -23,17 +24,14 @@ export default function PropertyDetailScreen({ route, navigation }) {
     setLoading(true);
 
     try {
-      const { data } = await api.get(`/codes/${id}`);
-      setProperty(data);
-    } catch (err) {
-      const status = err.response?.status;
-      if (status === 404) {
+      const snap = await getDoc(doc(db, 'properties', id));
+      if (!snap.exists()) {
         setError('Property not found.');
-      } else if (status === 403) {
-        setError("You don't have permission to do this.");
       } else {
-        setError(err.response?.data?.error || 'Failed to load property.');
+        setProperty({ id: snap.id, ...snap.data() });
       }
+    } catch (err) {
+      setError('Failed to load property.');
     } finally {
       setLoading(false);
     }
@@ -61,10 +59,10 @@ export default function PropertyDetailScreen({ route, navigation }) {
         style: 'destructive',
         onPress: async () => {
           try {
-            await api.delete(`/codes/${id}`);
+            await deleteDoc(doc(db, 'properties', id));
             navigation.goBack();
           } catch (err) {
-            setError(err.response?.data?.error || 'Delete failed.');
+            setError('Delete failed.');
           }
         },
       },

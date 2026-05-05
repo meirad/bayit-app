@@ -9,13 +9,16 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../api/client';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 import colors from '../theme/colors';
 import PropertyCard from '../components/PropertyCard';
 import LoadingOverlay from '../components/LoadingOverlay';
 import ErrorBanner from '../components/ErrorBanner';
 
 export default function CodesScreen({ navigation }) {
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,10 +34,20 @@ export default function CodesScreen({ navigation }) {
     }
 
     try {
-      const { data } = await api.get('/codes', { params: q ? { q } : {} });
-      setProperties(Array.isArray(data) ? data : []);
+      const col = collection(db, 'properties');
+      const q2 = query(col, orderBy('name'));
+      const snap = await getDocs(q2);
+      let all = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      if (user?.role !== 'admin') {
+        all = all.filter((p) => p.createdBy === user?.uid);
+      }
+      if (q) {
+        const lower = q.toLowerCase();
+        all = all.filter((p) => p.name?.toLowerCase().includes(lower));
+      }
+      setProperties(all);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load properties.');
+      setError('Failed to load properties.');
     } finally {
       setLoading(false);
       setRefreshing(false);
