@@ -1,0 +1,17 @@
+import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { AuthProvider } from './src/contexts/AuthContext';
+import AppNavigator from './src/navigation/AppNavigator';
+import colors from './src/theme/colors';
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AuthProvider>
+        <StatusBar style="dark" backgroundColor={colors.background} />
+        <AppNavigator />
+      </AuthProvider>
+    </SafeAreaProvider>
+  );
+}

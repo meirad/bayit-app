@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 client/node_modules/
+bayit-mobile/node_modules/
+bayit-mobile/dist/
+bayit-mobile/.expo/
 
 # Environment
 .env
