@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Brand */
+  --brand-50: #f1f6fb;
+  --brand-100: #e2ecf7;
+  --brand-200: #c6daed;
+  --brand-400: #6090c9;
+  --brand-500: #3f78b9;
+  --brand-600: #2e5ea9;
+  --brand-700: #244b86;
+  --brand-rgb: 46, 94, 169;
+
+  /* Gray */
+  --gray-50:  #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Semantic */
+  --red-50:   #fef2f2;
+  --red-100:  #fee2e2;
+  --red-400:  #f87171;
+  --red-600:  #dc2626;
+  --green-50: #f0fdf4;
+  --green-100:#dcfce7;
+  --green-600:#16a34a;
+  --green-700:#15803d;
+  --amber-50: #fffbeb;
+  --amber-400:#fbbf24;
+
+  /* Sidebar */
+  --sidebar-bg:   #0f172a;
+  --sidebar-hover:#182134;
+  --sidebar-active:#1c2b44;
+  --sidebar-border:rgba(255,255,255,0.06);
+  --sidebar-w: 240px;
+
+  /* Radius */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+
+  /* Shadow */
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:  0 12px 32px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.05);
+  --shadow-xl:  0 24px 64px rgba(0,0,0,0.14);
+  --shadow-focus: 0 0 0 3px rgba(46,94,169,0.22);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 120ms;
+  --t-base: 200ms;
+}
+
+html, body { height: 100%; width: 100%; }
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--gray-100);
+  color: var(--gray-900);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+#root { min-height: 100vh; height: 100%; display: flex; width: 100%; }
+
+a { color: var(--brand-600); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+input, button, textarea, select { font-family: inherit; font-size: inherit; }
+
+::selection { background: var(--brand-100); color: var(--brand-700); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
